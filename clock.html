@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<body>
+<div style="font-size:48px; text-align:center;">
+  <script>
+    function updateTime() {
+      document.body.innerHTML = new Date().toLocaleTimeString();
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+  </script>
+</div>
+</body>
+</html>
