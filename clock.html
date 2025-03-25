@@ -1,14 +1,136 @@
 <!DOCTYPE html>
 <html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>成都时钟</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@latest/dist/lunar.min.js"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            max-width: 500px;
+            width: 100%;
+        }
+        .time {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+            letter-spacing: 2px;
+        }
+        .date {
+            font-size: 1.5rem;
+            margin: 10px 0;
+            opacity: 0.9;
+        }
+        .lunar {
+            font-size: 1.2rem;
+            color: #ffcc00;
+            margin: 10px 0;
+        }
+        .weather {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+            font-size: 1.3rem;
+        }
+        .weather-icon {
+            width: 50px;
+            height: 50px;
+            margin-right: 15px;
+        }
+        .location {
+            margin-top: 10px;
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+        @media (max-width: 500px) {
+            .time { font-size: 2.5rem; }
+            .date { font-size: 1.2rem; }
+        }
+    </style>
+</head>
 <body>
-<div style="font-size:48px; text-align:center;">
-  <script>
-    function updateTime() {
-      document.body.innerHTML = new Date().toLocaleTimeString();
-    }
-    setInterval(updateTime, 1000);
-    updateTime();
-  </script>
-</div>
-</body>
-</html>
+    <div class="container">
+        <div class="time" id="time"></div>
+        <div class="date" id="date"></div>
+        <div class="lunar" id="lunar"></div>
+        <div class="weather" id="weather">
+            <img class="weather-icon" id="weather-icon" src="" alt="天气图标">
+            <span id="weather-info">获取成都天气中...</span>
+        </div>
+        <div class="location">📍 成都 · 成华区</div>
+    </div>
+
+    <script>
+        // 和风天气API配置（免费版，需替换为你的Key）
+        const WEATHER_API_KEY = '258dadcf550e4e72a1b3bebfb6dfe61b'; // 示例Key，可能需要更换
+        const LOCATION_ID = '101270112'; // 成华区LocationID
+
+        // 更新时间
+        function updateTime() {
+            const now = new Date();
+            
+            // 阳历时间
+            document.getElementById('time').textContent = 
+                now.toLocaleTimeString('zh-CN', { hour12: false });
+            
+            // 阳历日期
+            document.getElementById('date').textContent = 
+                now.toLocaleDateString('zh-CN', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    weekday: 'long'
+                });
+            
+            // 农历日期
+            const lunar = Lunar.fromDate(now);
+            document.getElementById('lunar').textContent = 
+                `${lunar.getYearInGanZhi()}年 ${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}`;
+        }
+
+        // 获取成都天气
+        async function getChengduWeather() {
+            try {
+                const response = await fetch(
+                    `https://devapi.qweather.com/v7/weather/now?location=${LOCATION_ID}&key=${WEATHER_API_KEY}`
+                );
+                const data = await response.json();
+                
+                if(data.code === '200') {
+                    document.getElementById('weather-info').textContent = 
+                        `${data.now.temp}℃ ${data.now.text} 湿度${data.now.humidity}%`;
+                    document.getElementById('weather-icon').src = 
+                        `https://qweather.com/img/icon/${data.now.icon}.png`;
+                } else {
+                    document.getElementById('weather-info').textContent = 
+                        '天气数据获取失败';
+                }
+            } catch (error) {
+                console.error('天气获取失败:', error);
+                document.getElementById('weather-info').textContent = 
+                    '网络连接失败';
+            }
+        }
+
+        // 页面加载时初始化
+        updateTime();
+        getChengduWeather();
